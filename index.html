@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Splendour Sounds</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gloock&family=Russo+One&display=swap" rel="stylesheet">
+<style>
+/* VOICE: a forgotten 90s rack-gear brand; nothing on the page but the brand.
+   IDEA: the QuadraVerb logotype: heavy extended italic letters sliced by one thin horizontal cut, the rule running out from both ends.
+   PICTURE: the user's sea and palm loops through a WebGL VHS + analog feedback shader, full bleed; a stippled sun beside the logo and at the end, cut by the same rule.
+   COLOUR and TYPE: amber worn logotype (Russo One, skewed, tall first capitals) on the tape image; lilac retro serif (Gloock) for section names; sun orange.
+   LAYOUT: sticky modern nav with the logo; each view is one screen with its title; the sun closes every view. */
+:root{color-scheme:dark;--bg:#100e19;--ink:#fff;--lil:#e493d8;--amb:#ec8a3a;--mix:#ec9a84;--duo:linear-gradient(180deg,#fde0b4 6%,#f6b266 30%,#ef9a7c 56%,#e493c4 82%,#d0709f 100%);--grain:none;--line:rgba(255,255,255,.12)}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,sans-serif;overflow-x:clip}
+#bg{position:fixed;inset:0;width:100vw;height:100lvh;z-index:-2;display:block;background:#000}
+#vids video{position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none}
+body.nogl #vids video{inset:0;width:100vw;height:100lvh;object-fit:cover;z-index:-3;filter:saturate(1.5) contrast(1.2) blur(.8px) hue-rotate(-12deg) brightness(.7);transition:opacity .4s}
+body.nogl #vids video.on{opacity:1}
+body.nogl::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.28) 0 2px,transparent 2px 4px)}
+
+/* QuadraVerb logotype: tall first capitals, small caps, a thin cut low in the letters, the rule running out from both ends */
+.qv{--cut:64%;--ch:.7em;--gap:calc(var(--ch)*.075);--rule:calc(var(--ch)*.06);--sw:1.7em;position:relative;display:inline-block;font:400 1em/1 "Russo One","Arial Black",sans-serif;letter-spacing:-.015em;color:var(--mix);transform:skewX(-13deg);white-space:nowrap}
+.qv>span{display:block;padding:.34em .04em .2em;background:var(--grain),var(--duo);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:.045em #c8619c;filter:url(#worn2);-webkit-mask:linear-gradient(#000 calc(var(--cut) - var(--gap)/2),transparent 0 calc(var(--cut) + var(--gap)/2),#000 0);mask:linear-gradient(#000 calc(var(--cut) - var(--gap)/2),transparent 0 calc(var(--cut) + var(--gap)/2),#000 0)}
+.qv b{font-weight:400;font-size:1.34em;line-height:0}
+.qv::before,.qv::after{content:"";position:absolute;top:var(--cut);height:max(1.5px,var(--rule));transform:translateY(-50%);background:currentColor}
+.qv::before{left:-.55em;right:calc(100% - .02em)}
+.qv::after{left:calc(100% - .02em);right:-.55em}
+.qv.sun{margin-right:calc(var(--sw) + .3em)}
+.qv.sun::after{left:calc(100% + var(--sw) + .28em);right:calc(-1*(var(--sw) + .3em) - .55em)}
+.qv .s{position:absolute;left:calc(100% + .14em);top:var(--cut);width:var(--sw);height:var(--sw);transform:translateY(-50%) skewX(13deg)}
+.cut{-webkit-mask:linear-gradient(#000 calc(50% - .04em),transparent 0 calc(50% + .04em),#000 0);mask:linear-gradient(#000 calc(50% - .04em),transparent 0 calc(50% + .04em),#000 0)}
+.sunc{display:block;width:100%;height:100%;animation:spin 220s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+header{position:sticky;top:0;z-index:5;overflow:clip;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 24px;min-height:64px;padding:8px max(4vw,14px);background:linear-gradient(rgba(12,10,20,.55),rgba(12,10,20,0))}
+.mark{font-size:clamp(15px,3.6vw,26px);text-decoration:none;padding:6px 0}
+.mark .qv{--sw:2.3em}
+nav{position:relative;z-index:1;display:flex;gap:clamp(14px,3vw,34px);padding:0 4px;background:var(--bg);background:transparent}
+nav a{position:relative;display:flex;align-items:center;min-height:44px;text-decoration:none;font:400 clamp(19px,2.2vw,24px)/1 Gloock,Georgia,serif;color:#cdbfd6;transition:color .2s}
+nav a[aria-current]{background:var(--grain),var(--duo);-webkit-background-clip:text;background-clip:text;color:transparent}
+nav a[aria-current]::after{content:"";position:absolute;left:0;right:0;bottom:8px;height:2px;background:var(--mix)}
+nav a:hover{color:var(--lil)}
+a:focus-visible{outline:2px solid var(--lil);outline-offset:2px}
+@media(max-width:640px){header{justify-content:center;background:rgba(12,10,20,.5)}.mark{font-size:3.9vw}}
+
+.view{overflow:clip;min-height:calc(100svh - 64px);display:grid;align-items:center;padding:clamp(40px,6vw,96px) max(5vw,16px)}
+.view>div{width:100%;max-width:1240px;margin:0 auto}
+.hero>div{display:grid;justify-items:center;gap:clamp(8px,2vw,24px)}
+.hero .sunbox{width:min(84vw,50svh,620px)}
+.hero .logo{text-align:center}
+.logo{margin:0;font-weight:400;line-height:1}
+.logo{white-space:nowrap}
+.logo .qv{display:inline-block;margin-left:.6em;font-size:clamp(18px,5.4vw,84px)}
+.lil{margin:0;font:400 clamp(60px,14vw,180px)/1.1 Gloock,Georgia,serif;background:var(--grain),var(--duo);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:.035em #c8619c;filter:url(#worn)}
+
+.sunset{overflow:clip;padding:clamp(56px,10vw,120px) 0;background:linear-gradient(transparent,rgba(16,14,25,.85) 40%,#100e19)}
+.sunbox{position:relative;width:min(92vw,640px);aspect-ratio:1;margin:0 auto}
+.sunbox::after{content:"";position:absolute;left:-7%;right:-7%;top:50%;height:7px;transform:translateY(-50%);background:var(--mix);filter:url(#worn2)}
+.sunbox .cut{width:100%;height:100%;-webkit-mask:linear-gradient(#000 calc(50% - 14px),transparent 0 calc(50% + 14px),#000 0);mask:linear-gradient(#000 calc(50% - 14px),transparent 0 calc(50% + 14px),#000 0)}
+#tap{position:fixed;inset:auto 0 32px;margin:auto;width:max-content;z-index:6;display:none;min-height:48px;padding:0 22px;border:0;border-radius:999px;background:#fff;color:#000;font:600 16px system-ui;cursor:pointer}
+@media(prefers-reduced-motion:reduce){.sunc{animation:none}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="worn"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="7" result="n"/><feColorMatrix in="n" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -5 3.4" result="m"/><feComposite in="SourceGraphic" in2="m" operator="in"/></filter><filter id="worn2"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="3" result="n"/><feColorMatrix in="n" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -7 5.4" result="m"/><feComposite in="SourceGraphic" in2="m" operator="in"/></filter></svg>
+<canvas id="bg" aria-hidden="true"></canvas>
+<div id="vids" aria-hidden="true"></div>
+<button id="tap">▶ Play</button>
+
+<header>
+  <a class="mark" href="#home" aria-label="Splendour Sounds"><span class="qv sun"><span><b>S</b>PLENDOUR <b>S</b>OUNDS</span><i class="s cut"><canvas class="sunc"></canvas></i></span></a>
+  <nav aria-label="Secciones"><a href="#home">Home</a><a href="#sounds">Sounds</a><a href="#devices">Devices</a></nav>
+</header>
+
+<main>
+  <section class="view hero" data-view="home"><div>
+    <div class="sunbox"><div class="cut"><canvas class="sunc" aria-hidden="true"></canvas></div></div>
+    <h1 class="logo" aria-label="Splendour Sounds"><span class="qv sun"><span><b>S</b>PLENDOUR <b>S</b>OUNDS</span><i class="s cut"><canvas class="sunc"></canvas></i></span></h1>
+  </div></section>
+  <section class="view" data-view="sounds" hidden><div><h2 class="lil">Sounds</h2></div></section>
+  <section class="view" data-view="devices" hidden><div><h2 class="lil">Devices</h2></div></section>
+</main>
+
+<footer class="sunset"><div class="sunbox"><div class="cut"><canvas class="sunc" aria-label="Sol"></canvas></div></div></footer>
+
+<script>
+{
+
+/* stipple grain shared by letters and suns */
+{const g=document.createElement("canvas");g.width=g.height=240;const x=g.getContext("2d");
+ for(let i=0;i<5200;i++){const r=Math.random();x.fillStyle=r<.62?"rgba(176,70,118,.8)":r<.85?"rgba(214,110,110,.65)":"rgba(255,232,190,.6)";x.beginPath();x.arc(Math.random()*240,Math.random()*240,.75+Math.random()*.6,0,7);x.fill()}
+ document.documentElement.style.setProperty("--grain",`url(${g.toDataURL()})`)}
+const SRC=["v/loop1.mp4","v/loop2.mp4","v/loop3.mp4","v/loop4.mp4"];
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const $=s=>document.querySelector(s);
+let glitch=1,level=0,cur=0;
+
+
+/* place the cut low in the small capitals, measured from the real font */
+const cutAll=()=>{const c=document.createElement("canvas").getContext("2d");
+ document.querySelectorAll(".qv").forEach(el=>{const sp=el.firstElementChild,cs=getComputedStyle(sp),fs=parseFloat(cs.fontSize);
+  c.font=`400 ${fs}px "Russo One"`;const m=c.measureText("H"),fa=m.fontBoundingBoxAscent||fs*.9,fd=m.fontBoundingBoxDescent||fs*.25,ch=m.actualBoundingBoxAscent||fs*.7;
+  const base=parseFloat(cs.paddingTop)+(fs-(fa+fd))/2+fa;
+  el.style.setProperty("--ch",ch+"px");el.style.setProperty("--cut",(base-ch*.3)+"px")})};
+(document.fonts?document.fonts.ready:Promise.resolve()).then(cutAll);cutAll();
+let rt;addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(cutAll,120)});
+
+const fitLogo=()=>{const h=document.querySelector(".logo");if(!h||h.closest("[hidden]"))return;const q=h.querySelector(".qv");q.style.fontSize="";
+ const avail=h.parentElement.clientWidth,fs=parseFloat(getComputedStyle(q).fontSize),w=q.getBoundingClientRect().width+parseFloat(getComputedStyle(q).marginRight)+fs*1.2;
+ q.style.fontSize=Math.min(150,fs*avail/w)+"px";cutAll()};
+(document.fonts?document.fonts.ready:Promise.resolve()).then(fitLogo);addEventListener("resize",()=>setTimeout(fitLogo,150));
+
+const VIEWS=["home","sounds","devices"];
+const route=()=>{const h=location.hash.slice(1);const v=VIEWS.includes(h)?h:"home";
+ document.querySelectorAll("[data-view]").forEach(s=>s.hidden=s.dataset.view!==v);
+ document.querySelectorAll("nav a").forEach(a=>a.toggleAttribute("aria-current",a.getAttribute("href")==="#"+v));
+ glitch=1;window.scrollTo(0,0);if(v==='home')setTimeout(()=>{try{fitLogo()}catch(e){}},0)};
+addEventListener("hashchange",route);route();
+
+const vids=SRC.map(s=>{const v=document.createElement("video");v.src=s;v.muted=true;v.loop=true;v.playsInline=true;v.setAttribute("playsinline","");v.setAttribute("muted","");v.preload="auto";$("#vids").appendChild(v);return v});
+vids[0].play().catch(()=>{$("#tap").style.display="block"});vids[0].classList.add("on");
+$("#tap").onclick=()=>{vids[cur].play().then(()=>$("#tap").style.display="none").catch(()=>{})};
+const next=()=>{const n=(cur+1)%vids.length;vids[n].play().catch(()=>{});glitch=1;
+ setTimeout(()=>{vids[cur].pause();vids[cur].classList.remove("on");cur=n;vids[cur].classList.add("on")},reduce?0:380)};
+setInterval(next,9000);
+let lastY=scrollY;addEventListener("scroll",()=>{glitch=Math.min(1,glitch+Math.abs(scrollY-lastY)/900);lastY=scrollY},{passive:true});
+
+/* ---------- WebGL VHS + feedback ---------- */
+const cv=$("#bg");let gl=null;
+try{gl=cv.getContext("webgl",{antialias:false,alpha:false})}catch(e){}
+const VS="attribute vec2 p;varying vec2 uv;void main(){uv=p*.5+.5;gl_Position=vec4(p,0.,1.);}";
+const HASH="precision mediump float;varying vec2 uv;uniform vec2 res;uniform float t,glitch;float h(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}";
+const FA=HASH+`uniform sampler2D vid,prev;uniform float fb,vAsp,cAsp;
+vec2 cover(vec2 u){vec2 s=vec2(1.);if(cAsp>vAsp)s.y=vAsp/cAsp;else s.x=cAsp/vAsp;return (u-.5)*s+.5;}
+void main(){vec2 u=uv;float line=floor(u.y*res.y);
+float j=(h(vec2(line,floor(t*24.)))-.5)*(.002+glitch*.05);
+float b=fract(1.-t*.06);float w=1.-smoothstep(0.,.04+glitch*.12,abs(u.y-b));
+j+=w*(h(vec2(line,t))-.5)*.04*(.5+glitch);
+vec3 v=texture2D(vid,cover(vec2(u.x+j,u.y))).rgb;
+vec2 c=u-.5;float a=.012*sin(t*.31)+.004*sin(t*1.7)+glitch*.03;c=mat2(cos(a),-sin(a),sin(a),cos(a))*c;c*=.972+.006*sin(t*.5)-glitch*.03;c+=vec2(.004*sin(t*.7),.003*cos(t*.43));
+vec3 p=texture2D(prev,c+.5).rgb;
+vec3 pr=vec3(texture2D(prev,c*1.012+.5).r,p.g,texture2D(prev,c*.988+.5).b);
+p=mix(p,pr,.7)*vec3(.985,.93,.99)*.93;
+vec3 col=mix(v,max(v,p),fb);col=mix(col,p,fb*.35);
+col=mix(col,texture2D(prev,(u-.5)*.94+.5).rgb*.9,.08*fb);
+col+=w*(.15+glitch*.3)*h(vec2(u.x*res.x,line+t));
+gl_FragColor=vec4(col,1.);}`;
+const FB=HASH+`uniform sampler2D tex;uniform float dim;
+void main(){vec2 u=uv;float line=floor(u.y*res.y);
+float hs=smoothstep(.07,0.,u.y);u.x+=hs*(h(vec2(line,t))*.05+.02);
+u.x+=sin(u.y*32.+t*2.3)*.0009*(1.+glitch*10.);
+float o=.0035+glitch*.015;
+vec3 col=vec3(texture2D(tex,u+vec2(o,0.)).r,texture2D(tex,u).g,texture2D(tex,u-vec2(o,0.)).b);
+vec3 bl=(texture2D(tex,u+vec2(.007,0.)).rgb+texture2D(tex,u-vec2(.007,0.)).rgb+texture2D(tex,u+vec2(.014,0.)).rgb)/3.;
+float Y=dot(col,vec3(.299,.587,.114));col=Y+(bl-dot(bl,vec3(.299,.587,.114)))*1.25;
+col=pow(max(col,0.),vec3(.95,1.,1.06))*vec3(1.06,.95,1.08);
+col*=.84+.16*sin(uv.y*res.y*3.14159);
+col+=(h(uv*res+fract(t)*97.)-.5)*(.09+glitch*.25);
+float g=step(.994-glitch*.06,h(vec2(floor(uv.y*90.),floor(t*14.))));col=mix(col,vec3(h(uv+t)),g*.6);
+vec3 bloom=vec3(0.);for(int i=0;i<8;i++){float an=float(i)*.785+t*.2;vec2 d=vec2(cos(an),sin(an)*1.6);bloom+=max(texture2D(tex,u+d*.018).rgb-.62,0.)+max(texture2D(tex,u+d*.045).rgb-.58,0.)*.8;}
+bloom/=8.;col+=bloom*vec3(1.2,.85,1.15)*1.1;
+col+=vec3(max(texture2D(tex,u+vec2(.03,0.)).r-.5,0.)*.45,0.,max(texture2D(tex,u-vec2(.03,0.)).b-.5,0.)*.45);
+col+=texture2D(tex,u-vec2(.022,0.)).rgb*vec3(.07,.08,.11);
+vec2 q=uv-.5;col*=(1.-dot(q,q)*1.1)*dim;
+gl_FragColor=vec4(col,1.);}`;
+let ok=false,PA,PB,vt,fbos=[],W=0,H=0,ping=0,vAsp=9/16;
+function sh(tp,src){const s=gl.createShader(tp);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s));return s}
+function prog(fs){const p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_SHADER,VS));gl.attachShader(p,sh(gl.FRAGMENT_SHADER,fs));gl.bindAttribLocation(p,0,"p");gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error("link");p.u={};return p}
+const U=(p,n)=>p.u[n]??=gl.getUniformLocation(p,n);
+function mkTex(){const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);return t}
+function resize(){H=300;W=Math.min(900,Math.max(160,Math.round(H*innerWidth/innerHeight)));cv.width=W;cv.height=H;
+ fbos.forEach(f=>{gl.deleteTexture(f.t);gl.deleteFramebuffer(f.f)});
+ fbos=[0,1].map(()=>{const t=mkTex();gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,W,H,0,gl.RGBA,gl.UNSIGNED_BYTE,null);const f=gl.createFramebuffer();gl.bindFramebuffer(gl.FRAMEBUFFER,f);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,t,0);gl.clearColor(0,0,0,1);gl.clear(gl.COLOR_BUFFER_BIT);return{t,f}})}
+try{if(!gl)throw 0;
+ PA=prog(FA);PB=prog(FB);
+ const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+ vt=mkTex();gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([0,0,0,255]));
+ resize();addEventListener("resize",resize);ok=true}catch(e){document.body.classList.add("nogl")}
+function frame(now){const t=now/1000;
+ glitch*=reduce?.8:.94;const g=Math.min(1,glitch+level*.8);
+ const v=vids[cur];gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,vt);
+ if(v.readyState>=2){gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);try{gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,v);vAsp=v.videoWidth/v.videoHeight||vAsp}catch(e){}gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false)}
+ const src=fbos[ping],dst=fbos[1-ping];
+ gl.useProgram(PA);gl.bindFramebuffer(gl.FRAMEBUFFER,dst.f);gl.viewport(0,0,W,H);
+ gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,src.t);
+ gl.uniform1i(U(PA,"vid"),0);gl.uniform1i(U(PA,"prev"),1);gl.uniform2f(U(PA,"res"),W,H);gl.uniform1f(U(PA,"t"),t);gl.uniform1f(U(PA,"glitch"),reduce?g*.3:g);
+ gl.uniform1f(U(PA,"fb"),reduce?.25:Math.min(.9,.68+.15*Math.sin(t*.23)+level*.4));gl.uniform1f(U(PA,"vAsp"),vAsp);gl.uniform1f(U(PA,"cAsp"),W/H);
+ gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+ gl.useProgram(PB);gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,W,H);
+ gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,dst.t);
+ gl.uniform1i(U(PB,"tex"),1);gl.uniform2f(U(PB,"res"),W,H);gl.uniform1f(U(PB,"t"),t);gl.uniform1f(U(PB,"glitch"),reduce?g*.3:g);gl.uniform1f(U(PB,"dim"),.82);
+ gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+ ping=1-ping;requestAnimationFrame(frame)}
+if(ok)requestAnimationFrame(frame);
+
+/* ---------- sun: vector shapes + stipple; "a" orange (logo), "b" amber-lilac with more grain (closing sun) ---------- */
+(function sun(){const S=1400,cx=S/2,R=S/2/2.85,N=32;
+ const PAL={a:{dark:"#d8492a",ray:["#f7b468","#f09550","#e46a35"],disk:["#fdd9a2","#f8bd78","#f08b47","#d84f2b"],dotD:"rgba(190,52,28,.75)",dotL:"rgba(214,88,40,.55)",dust:["rgba(228,104,60,.7)","rgba(240,150,90,.6)"],n:160000,k:1,r:1.15},
+  b:{dark:"#d0709f",ray:["#f6b266","#ef9a7c","#e493c4"],disk:["#fee2b6","#f7b778","#ea958f","#c25e9c"],dotD:"rgba(176,70,118,.8)",dotL:"rgba(214,110,110,.6)",dust:["rgba(226,140,200,.75)","rgba(240,150,80,.7)"],n:520000,k:2.1,r:1.7}};
+ const make=P=>{const c=document.createElement("canvas");c.width=c.height=S;const x=c.getContext("2d");let seed=11;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+  const ray=(k,scale,shift)=>{const a=k/N*Math.PI*2,L=R*(k%2?2.24:2.68),r0=R*.9,amp=R*.085,fq=1.45,ph=.6,w0=R*.105,ca=Math.cos(a),sa=Math.sin(a),l=[],rr=[];
+   for(let i=0;i<=48;i++){const t=i/48,r=r0+(L-r0)*t,off=amp*Math.sin(t*fq*6.283+ph)*Math.pow(t,.7),hw=(w0*Math.pow(1-t,.9)+R*.004)*scale,o=off+shift*hw;
+    const px=cx+ca*r-sa*o,py=cx+sa*r+ca*o;l.push([px-sa*hw,py+ca*hw]);rr.push([px+sa*hw,py-ca*hw])}
+   const Q=new Path2D();l.forEach(([p,q],i)=>i?Q.lineTo(p,q):Q.moveTo(p,q));const tip=l[48];Q.quadraticCurveTo(tip[0]+ca*R*.02,tip[1]+sa*R*.02,rr[48][0],rr[48][1]);
+   rr.reverse().forEach(([p,q])=>Q.lineTo(p,q));Q.closePath();return Q};
+  const gR=x.createRadialGradient(cx,cx,R*.9,cx,cx,R*2.8);[0,.45,1].forEach((o,i)=>gR.addColorStop(o,P.ray[i]));
+  for(let k=0;k<N;k++){x.fillStyle=P.dark;x.fill(ray(k,1,0));x.fillStyle=gR;x.fill(ray(k,.6,.32))}
+  const gD=x.createRadialGradient(cx-R*.12,cx-R*.12,0,cx,cx,R);[0,.5,.82,1].forEach((o,i)=>gD.addColorStop(o,P.disk[i]));
+  x.fillStyle=gD;x.beginPath();x.arc(cx,cx,R,0,7);x.fill();
+  const img=x.getImageData(0,0,S,S).data;
+  for(let n=0;n<P.n;n++){const px=rnd()*S,py=rnd()*S,i=((py|0)*S+(px|0))*4;if(img[i+3]<200)continue;
+   const d=Math.hypot(px-cx,py-cx)/R,dark=img[i+1]<110;const p=Math.min(.95,(d<1?.05+.45*Math.pow(d,5):(dark?.5:.12))*P.k);
+   if(rnd()<p){x.fillStyle=dark||d>.9?P.dotD:P.dotL;x.beginPath();x.arc(px,py,P.r,0,7);x.fill()}}
+  for(let n=0;n<2600*P.k;n++){const a=rnd()*6.283,r=S*(.43+rnd()*.07);if(rnd()<.6){x.fillStyle=P.dust[rnd()<.5?0:1];x.beginPath();x.arc(cx+Math.cos(a)*r,cx+Math.sin(a)*r,P.r+.2,0,7);x.fill()}}
+  return c};
+ const cache={};
+ document.querySelectorAll("canvas.sunc").forEach(k=>{const v=k.dataset.v||"b",src=cache[v]??=make(PAL[v]);const n=Math.min(S,Math.round(k.clientWidth*(devicePixelRatio||1)*1.2)||S);k.width=k.height=n;const g=k.getContext("2d");g.imageSmoothingQuality="high";g.drawImage(src,0,0,n,n)});
+})();
+}
+</script>
+</body>
+</html>
