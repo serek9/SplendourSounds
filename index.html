@@ -291,7 +291,7 @@ const SAMPLES=[{"t":"Far Away","f":"audio/far-away.mp3","p":[0.92,0.87,0.85,0.89
     r.querySelector(".top").style.clipPath=`inset(0 ${100-t/d*100}% 0 0)`;r.querySelector(".tm").textContent=fmt(curA===i?t:d)});
    if(an&&curA>=0){an.getByteTimeDomainData(buf);let q=0;for(const v of buf){const k=(v-128)/128;q+=k*k}level=level*.8+Math.min(1,Math.sqrt(q/buf.length)*3)*.2}else level*=.9;
    requestAnimationFrame(tick)})}}
-const SRC=["v/loop1.mp4","v/loop2.mp4","v/loop3.mp4","v/loop4.mp4"];
+const SRC=["v/loop1.mp4","v/loop2.mp4","v/loop3.mp4","v/loop4.mp4","v/loop5.mp4"];
 const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
 const $=s=>document.querySelector(s);
 let glitch=1,level=0,cur=0;
