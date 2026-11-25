@@ -294,26 +294,38 @@ const SAMPLES=[{"t":"Far Away","f":"audio/far-away.mp3","p":[0.92,0.87,0.85,0.89
  const bars=(pk,fill)=>`<svg viewBox="0 0 ${pk.length} 40" preserveAspectRatio="none" aria-hidden="true">${pk.map((v,i)=>`<rect x="${i+.15}" y="${(40-v*38)/2}" width=".7" height="${v*38}" fill="${fill}"/>`).join("")}</svg>`;
  const fmt=t=>`${Math.floor(t/60)}:${String(Math.floor(t%60)).padStart(2,"0")}`;
  if(box){box.innerHTML=SAMPLES.map((x,i)=>`<div class="smp" id="sm${i}"><button class="btn9" type="button" aria-label="Play ${x.t}">▶</button><div><b>${x.t}</b><div class="wave">${bars(x.p,"#5a4f68")}<div class="top" style="position:absolute;inset:0">${bars(x.p,"#f1a98a")}</div></div></div><span class="tm">0:23</span></div>`).join("");
-  const els=SAMPLES.map(()=>null);let curA=-1,ctx=null,an=null,buf=null,fbuf=null;
-  const get=i=>{if(!els[i]){const a=new Audio(SAMPLES[i].f);a.preload="auto";els[i]=a;
-    a.addEventListener("ended",()=>stop(i));
-    try{ctx=ctx||new(window.AudioContext||window.webkitAudioContext)();if(!an){an=ctx.createAnalyser();an.fftSize=1024;an.smoothingTimeConstant=.7;buf=new Uint8Array(1024);fbuf=new Uint8Array(512);an.connect(ctx.destination)}ctx.createMediaElementSource(a).connect(an)}catch(e){}}
-   return els[i]};
+  /* Web Audio looper: each sample loops seamlessly with an equal-power crossfade at the seam */
+  const XF=1.6;let curA=-1,ctx=null,an=null,buf=null,fbuf=null,out=null,voices=[],t0=0,off0=0,timer=0;
+  const bufs=SAMPLES.map(()=>null);
+  const audio=()=>{if(!ctx){ctx=new(window.AudioContext||window.webkitAudioContext)();an=ctx.createAnalyser();an.fftSize=1024;an.smoothingTimeConstant=.7;buf=new Uint8Array(1024);fbuf=new Uint8Array(512);out=ctx.createGain();out.connect(an);an.connect(ctx.destination)}if(ctx.state==="suspended")ctx.resume();return ctx};
+  const load=i=>bufs[i]??=fetch(SAMPLES[i].f).then(r=>r.arrayBuffer()).then(d=>new Promise((ok,ko)=>ctx.decodeAudioData(d,ok,ko)));
+  const curve=(n,up)=>{const c=new Float32Array(64);for(let k=0;k<64;k++){const x=k/63;c[k]=up?Math.sin(x*Math.PI/2):Math.cos(x*Math.PI/2)}return c};
+  const UP=curve(0,1),DOWN=curve(0,0);
+  /* start one pass of the sample at time `at`, from `offset`, fading in if `fade` */
+  const voice=(B,at,offset,fade)=>{const src=ctx.createBufferSource(),g=ctx.createGain();src.buffer=B;src.connect(g);g.connect(out);
+   if(fade)g.gain.setValueCurveAtTime(UP,at,XF);else{g.gain.setValueAtTime(0,at);g.gain.linearRampToValueAtTime(1,at+.03)}
+   const end=at+(B.duration-offset);g.gain.setValueCurveAtTime(DOWN,end-XF,XF);src.start(at,offset);src.stop(end+.05);
+   const v={src,g,end};voices.push(v);src.onended=()=>{voices=voices.filter(x=>x!==v)};return v};
+  const schedule=B=>{clearTimeout(timer);const last=voices[voices.length-1];if(!last)return;
+   const nextAt=last.end-XF;timer=setTimeout(()=>{if(curA<0)return;voice(B,nextAt,0,true);schedule(B)},Math.max(0,(nextAt-ctx.currentTime-.5)*1000))};
+  const kill=()=>{clearTimeout(timer);const n=ctx?ctx.currentTime:0;voices.forEach(v=>{try{v.g.gain.cancelScheduledValues(n);v.g.gain.setValueAtTime(v.g.gain.value,n);v.g.gain.linearRampToValueAtTime(0,n+.25);v.src.stop(n+.3)}catch(e){}});voices=[]};
+  const pos=i=>{const B=bufs[i]&&bufs[i].B;if(curA!==i||!B)return 0;const L=B.duration-XF;return (off0+(ctx.currentTime-t0))%L};
   const row=i=>document.getElementById("sm"+i);
-  const stop=i=>{const a=els[i];if(a){a.pause()}row(i).classList.remove("on");row(i).querySelector("button").textContent="▶";if(curA===i){curA=-1;viz(false)}};
-  const play=i=>{if(curA>=0&&curA!==i)stop(curA);const a=get(i);if(ctx&&ctx.state==="suspended")ctx.resume();a.play().then(()=>{curA=i;row(i).classList.add("on");row(i).querySelector("button").textContent="■";document.getElementById("vizt").textContent=SAMPLES[i].t;viz(true)}).catch(()=>{})};
+  const stop=i=>{kill();row(i).classList.remove("on");row(i).querySelector("button").textContent="▶";if(curA===i){curA=-1;viz(false)}};
+  const play=(i,offset=0)=>{if(curA>=0&&curA!==i)stop(curA);audio();kill();curA=i;row(i).classList.add("on");row(i).querySelector("button").textContent="■";document.getElementById("vizt").textContent=SAMPLES[i].t;viz(true);
+   load(i).then(B=>{bufs[i].B=B;if(curA!==i)return;const at=ctx.currentTime+.05;t0=at;off0=offset;voice(B,at,offset,false);schedule(B)}).catch(()=>stop(i))};
   document.getElementById("vizstop").onclick=()=>{if(curA>=0)stop(curA)};
   document.getElementById("vizback").onclick=()=>viz(false);
   addEventListener("keydown",e=>{if(e.key==="Escape"&&document.body.classList.contains("viz"))viz(false)});
-  box.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const i=+b.closest(".smp").id.slice(2);(curA===i&&!els[i].paused)?stop(i):play(i)});
-  box.addEventListener("pointerdown",e=>{const w=e.target.closest(".wave");if(!w)return;const i=+w.closest(".smp").id.slice(2),a=get(i),r=w.getBoundingClientRect();
-   const seek=x=>{const d=a.duration||23;a.currentTime=Math.max(0,Math.min(1,(x-r.left)/r.width))*d};seek(e.clientX);if(curA!==i)play(i)});
-  requestAnimationFrame(function tick(){SAMPLES.forEach((_,i)=>{const a=els[i];if(!a)return;const d=a.duration||23,t=a.currentTime||0,r=row(i);
-    r.querySelector(".top").style.clipPath=`inset(0 ${100-t/d*100}% 0 0)`;r.querySelector(".tm").textContent=fmt(curA===i?t:d)});
+  box.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const i=+b.closest(".smp").id.slice(2);curA===i?stop(i):play(i)});
+  box.addEventListener("pointerdown",e=>{const w=e.target.closest(".wave");if(!w)return;const i=+w.closest(".smp").id.slice(2),r=w.getBoundingClientRect(),f=Math.max(0,Math.min(.97,(e.clientX-r.left)/r.width));
+   audio();load(i).then(B=>play(i,f*(B.duration-XF)))});
+  requestAnimationFrame(function tick(){SAMPLES.forEach((_,i)=>{const B=bufs[i]&&bufs[i].B;const d=B?B.duration:23,t=curA===i?pos(i):0,r=row(i);
+    r.querySelector(".top").style.clipPath=`inset(0 ${curA===i?100-t/d*100:100}% 0 0)`;r.querySelector(".tm").textContent=fmt(curA===i?t:d)});
    if(an&&curA>=0){an.getByteTimeDomainData(buf);let q=0;for(const v of buf){const k=(v-128)/128;q+=k*k}level=level*.8+Math.min(1,Math.sqrt(q/buf.length)*3)*.2;
     an.getByteFrequencyData(fbuf);const hz=ctx.sampleRate/an.fftSize,band=(a,b)=>{let m=0,n=0;for(let k=Math.floor(a/hz);k<=Math.min(fbuf.length-1,Math.ceil(b/hz));k++){m+=fbuf[k];n++}return n?m/n/255:0};
     AUD.bass=AUD.bass*.7+band(30,250)*.3;AUD.mid=AUD.mid*.7+band(250,2500)*.3;AUD.high=AUD.high*.7+band(2500,12000)*.3;
-    const a=els[curA];document.getElementById("vizp").style.width=(a.currentTime/(a.duration||23)*100)+"%"}else{level*=.9;AUD.bass*=.9;AUD.mid*=.9;AUD.high*=.9}
+    const B=bufs[curA]&&bufs[curA].B;if(B)document.getElementById("vizp").style.width=(pos(curA)/(B.duration-XF)*100)+"%"}else{level*=.9;AUD.bass*=.9;AUD.mid*=.9;AUD.high*=.9}
    AUD.level=level;
    requestAnimationFrame(tick)})}}
 const SRC=["v/loop1.mp4","v/loop2.mp4","v/loop3.mp4","v/loop4.mp4","v/loop5.mp4"];
