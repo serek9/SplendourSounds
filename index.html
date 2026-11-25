@@ -60,8 +60,10 @@ a:focus-visible{outline:2px solid var(--lil);outline-offset:2px}
 .lil{margin:0;font:400 clamp(60px,14vw,180px)/1.1 Gloock,Georgia,serif;background:var(--grain),var(--duo);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:.035em #c8619c;filter:url(#worn)}
 
 .sunset{overflow:clip;padding:clamp(56px,10vw,120px) 0;background:linear-gradient(transparent,rgba(16,14,25,.85) 40%,#100e19)}
-.sunbox{position:relative;width:min(92vw,640px);aspect-ratio:1;margin:0 auto}
-.sunbox::after{content:"";position:absolute;left:-7%;right:-7%;top:50%;height:7px;transform:translateY(-50%);background:var(--mix);filter:url(#worn2)}
+.sunbox{position:relative;width:min(84vw,50svh,620px);aspect-ratio:1;margin:0 auto}
+.sunbox::before,.sunbox::after{content:"";position:absolute;top:50%;height:7px;transform:translateY(-50%);background:var(--mix);filter:url(#worn2)}
+.sunbox::before{left:-14%;right:calc(100% + 1%)}
+.sunbox::after{left:calc(100% + 1%);right:-14%}
 .sunbox .cut{width:100%;height:100%;-webkit-mask:linear-gradient(#000 calc(50% - 14px),transparent 0 calc(50% + 14px),#000 0);mask:linear-gradient(#000 calc(50% - 14px),transparent 0 calc(50% + 14px),#000 0)}
 
 /* ---------- content pages: lost-90s-web boxes, Gloock headings, Gelasio text, nav colour ---------- */
@@ -122,7 +124,8 @@ figcaption{margin-top:8px;font:italic 14px/1.45 Gelasio,Georgia,serif;color:#a99
 .wave .top{clip-path:inset(0 100% 0 0)}
 .tm{font:14px Gelasio,Georgia,serif;color:#a99db6;min-width:3.2em;text-align:right;font-variant-numeric:tabular-nums}
 /* home feed: everything published in Sound, Device and Image */
-.feed{align-items:start;min-height:auto}
+.feed{align-items:center;min-height:calc(100svh - 64px)}
+.feed>div>h3{margin:0 0 .35em;font-size:clamp(60px,14vw,180px);line-height:1}
 .feed>div{max-width:1120px;font:17px/1.65 Gelasio,Georgia,serif;color:var(--nav)}
 .posts{display:grid;gap:18px}
 .post{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:clamp(16px,3vw,32px);align-items:center;text-decoration:none;color:var(--nav)}
