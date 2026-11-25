@@ -371,8 +371,8 @@ const HASH="precision mediump float;varying vec2 uv;uniform vec2 res;uniform vec
 const FA=HASH+`uniform sampler2D vid,prev;uniform float fb,vAsp,cAsp;
 vec2 cover(vec2 u){vec2 s=vec2(1.);if(cAsp>vAsp)s.y=vAsp/cAsp;else s.x=cAsp/vAsp;return (u-.5)*s+.5;}
 void main(){vec2 u=uv;float line=floor(u.y*res.y);
-float j=(h(vec2(line,floor(t*24.)))-.5)*(.002+glitch*.05);
-float b=fract(1.-t*.06);float w=1.-smoothstep(0.,.04+glitch*.12,abs(u.y-b));
+float j=(h(vec2(line,floor(t*24.)))-.5)*(.002+glitch*.05)*(1.-vz);
+float b=fract(1.-t*.06);float w=(1.-smoothstep(0.,.04+glitch*.12,abs(u.y-b)))*(1.-vz);
 j+=w*(h(vec2(line,t))-.5)*.04*(.5+glitch);
 vec3 v=texture2D(vid,cover(vec2(u.x+j,u.y))).rgb;
 vec2 c=u-.5;float a=.012*sin(t*.31)+.004*sin(t*1.7)+glitch*.03;c=mat2(cos(a),-sin(a),sin(a),cos(a))*c;c*=.972+.006*sin(t*.5)-glitch*.03-bands.x*.025*vz;c+=vec2(.004*sin(t*.7),.003*cos(t*.43));
@@ -384,22 +384,28 @@ col=mix(col,texture2D(prev,(u-.5)*.94+.5).rgb*.9,.08*fb);
 col+=w*(.15+glitch*.3)*h(vec2(u.x*res.x,line+t));
 gl_FragColor=vec4(col,1.);}`;
 const FB=HASH+`uniform sampler2D tex;uniform float dim;
-void main(){vec2 u=uv;float line=floor(u.y*res.y);
-float hs=smoothstep(.07,0.,u.y);u.x+=hs*(h(vec2(line,t))*.05+.02);
-u.x+=sin(u.y*32.+t*2.3)*.0009*(1.+glitch*10.);
-float o=.0035+glitch*.015+bands.z*.02*vz;
+void main(){float nv=1.-vz;
+/* CRT in visualizer: slight screen curvature */
+vec2 cc=uv-.5;cc*=1.+dot(cc,cc)*.09*vz;vec2 su=cc+.5;
+vec2 u=su;float line=floor(u.y*res.y);
+float hs=smoothstep(.07,0.,u.y)*nv;u.x+=hs*(h(vec2(line,t))*.05+.02);
+u.x+=sin(u.y*32.+t*2.3)*.0009*(1.+glitch*10.)*nv;
+float o=.0035*nv+.0012*vz+glitch*.015+bands.z*.012*vz;
 vec3 col=vec3(texture2D(tex,u+vec2(o,0.)).r,texture2D(tex,u).g,texture2D(tex,u-vec2(o,0.)).b);
 vec3 bl=(texture2D(tex,u+vec2(.007,0.)).rgb+texture2D(tex,u-vec2(.007,0.)).rgb+texture2D(tex,u+vec2(.014,0.)).rgb)/3.;
-float Y=dot(col,vec3(.299,.587,.114));col=Y+(bl-dot(bl,vec3(.299,.587,.114)))*1.25;
-col=pow(max(col,0.),vec3(.95,1.,1.06))*vec3(1.06,.95,1.08);
-col*=.84+.16*sin(uv.y*res.y*3.14159);
-col+=(h(uv*res+fract(t)*97.)-.5)*(.09+glitch*.25);
-float g=step(.994-glitch*.06,h(vec2(floor(uv.y*90.),floor(t*14.))));col=mix(col,vec3(h(uv+t)),g*.6);
+float Y=dot(col,vec3(.299,.587,.114));col=mix(col,Y+(bl-dot(bl,vec3(.299,.587,.114)))*1.25,nv);
+col=pow(max(col,0.),vec3(.95,1.,1.06))*mix(vec3(1.),vec3(1.06,.95,1.08),nv);
+float sl=.84+.16*sin(su.y*res.y*3.14159);col*=mix(sl,.72+.28*sin(su.y*res.y*3.14159)+bands.y*.12,vz);
+/* CRT aperture mask */
+float m=mod(gl_FragCoord.x,3.);col*=mix(vec3(1.),vec3(m<1.?1.12:.9,m>=1.&&m<2.?1.12:.9,m>=2.?1.12:.9),vz*.8);
+col+=(h(uv*res+fract(t)*97.)-.5)*(.09*nv+.04*vz+glitch*.25);
+float g=step(.994-glitch*.06,h(vec2(floor(uv.y*90.),floor(t*14.))))*nv;col=mix(col,vec3(h(uv+t)),g*.6);
 vec3 bloom=vec3(0.);for(int i=0;i<8;i++){float an=float(i)*.785+t*.2;vec2 d=vec2(cos(an),sin(an)*1.6);bloom+=max(texture2D(tex,u+d*.018).rgb-.62,0.)+max(texture2D(tex,u+d*.045).rgb-.58,0.)*.8;}
-bloom/=8.;col+=bloom*vec3(1.2,.85,1.15)*1.1;
-col+=vec3(max(texture2D(tex,u+vec2(.03,0.)).r-.5,0.)*.45,0.,max(texture2D(tex,u-vec2(.03,0.)).b-.5,0.)*.45);
-col+=texture2D(tex,u-vec2(.022,0.)).rgb*vec3(.07,.08,.11);
-vec2 q=uv-.5;col*=(1.-dot(q,q)*1.1)*dim;
+bloom/=8.;col+=bloom*vec3(1.2,.85,1.15)*1.1*nv;
+col+=vec3(max(texture2D(tex,u+vec2(.03,0.)).r-.5,0.)*.45,0.,max(texture2D(tex,u-vec2(.03,0.)).b-.5,0.)*.45)*nv;
+col+=texture2D(tex,u-vec2(.022,0.)).rgb*vec3(.07,.08,.11)*nv;
+vec2 q=uv-.5;col*=(1.-dot(q,q)*(1.1+.5*vz))*dim;
+col*=1.-vz*(1.-smoothstep(.5,.488,abs(cc.x))*smoothstep(.5,.485,abs(cc.y)));
 gl_FragColor=vec4(col,1.);}`;
 let ok=false,PA,PB,vt,fbos=[],W=0,H=0,ping=0,vAsp=9/16;
 function sh(tp,src){const s=gl.createShader(tp);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s));return s}
@@ -422,12 +428,12 @@ function frame(now){const t=now/1000;
  const src=fbos[ping],dst=fbos[1-ping];
  gl.useProgram(PA);gl.bindFramebuffer(gl.FRAMEBUFFER,dst.f);gl.viewport(0,0,W,H);
  gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,src.t);
- gl.uniform1i(U(PA,"vid"),0);gl.uniform1i(U(PA,"prev"),1);gl.uniform2f(U(PA,"res"),W,H);gl.uniform1f(U(PA,"t"),t);gl.uniform1f(U(PA,"glitch"),reduce?g*.3:g);
- gl.uniform1f(U(PA,"fb"),reduce?.25:Math.min(.9,.68+.15*Math.sin(t*.23)+level*.4));gl.uniform1f(U(PA,"vAsp"),vAsp);gl.uniform3f(U(PA,"bands"),AUD.bass,AUD.mid,AUD.high);gl.uniform1f(U(PA,"vz"),vzs);gl.uniform1f(U(PA,"cAsp"),W/H);
+ gl.uniform1i(U(PA,"vid"),0);gl.uniform1i(U(PA,"prev"),1);gl.uniform2f(U(PA,"res"),W,H);gl.uniform1f(U(PA,"t"),t);gl.uniform1f(U(PA,"glitch"),(reduce?g*.3:g)*(1-vzs));
+ gl.uniform1f(U(PA,"fb"),reduce?.25:Math.min(.9,.68+.15*Math.sin(t*.23)+level*.4)*(1-vzs)+vzs*Math.min(.7,AUD.bass*1.1));gl.uniform1f(U(PA,"vAsp"),vAsp);gl.uniform3f(U(PA,"bands"),AUD.bass,AUD.mid,AUD.high);gl.uniform1f(U(PA,"vz"),vzs);gl.uniform1f(U(PA,"cAsp"),W/H);
  gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
  gl.useProgram(PB);gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,W,H);
  gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,dst.t);
- gl.uniform1i(U(PB,"tex"),1);gl.uniform2f(U(PB,"res"),W,H);gl.uniform1f(U(PB,"t"),t);gl.uniform1f(U(PB,"glitch"),reduce?g*.3:g);gl.uniform1f(U(PB,"dim"),.82+vzs*.18);gl.uniform3f(U(PB,"bands"),AUD.bass,AUD.mid,AUD.high);gl.uniform1f(U(PB,"vz"),vzs);
+ gl.uniform1i(U(PB,"tex"),1);gl.uniform2f(U(PB,"res"),W,H);gl.uniform1f(U(PB,"t"),t);gl.uniform1f(U(PB,"glitch"),(reduce?g*.3:g)*(1-vzs));gl.uniform1f(U(PB,"dim"),.82+vzs*.18);gl.uniform3f(U(PB,"bands"),AUD.bass,AUD.mid,AUD.high);gl.uniform1f(U(PB,"vz"),vzs);
  gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
  ping=1-ping;requestAnimationFrame(frame)}
 if(ok)requestAnimationFrame(frame);
